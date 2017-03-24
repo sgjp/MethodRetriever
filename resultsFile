@@ -1,0 +1,111 @@
+
+
+METHOD #1
+-------
+@Override public void setUp(){
+  output=new ByteArrayOutputStream();
+  runner=new TestRunner(new TestResultPrinter(new PrintStream(output)));
+}
+------
+
+EC: 0.0
+
+
+METHOD #2
+-------
+@Test public void wrapIfNotThreadSafeShouldNotWrapThreadSafeListeners(){
+  ThreadSafeListener listener=new ThreadSafeListener();
+  ;
+  assertSame(listener,new RunNotifier().wrapIfNotThreadSafe(listener));
+}
+------
+
+EC: 3.1622776601683795
+
+
+METHOD #3
+-------
+@Test public void givenPreJava5DebugArgumentsIsDebuggingShouldReturnTrue(){
+  DisableOnDebug subject=new DisableOnDebug(new FailOnExecution(),PRE_JAVA5_DEBUG_ARGUMENTS);
+  assertTrue("Should be debugging",subject.isDebugging());
+}
+------
+
+EC: 3.4641016151377544
+
+
+METHOD #4
+-------
+@Test public void givenPreJava5DebugArgumentsInReverseIsDebuggingShouldReturnTrue(){
+  DisableOnDebug subject=new DisableOnDebug(new FailOnExecution(),PRE_JAVA5_DEBUG_ARGUMENTS_IN_REVERSE_ORDER);
+  assertTrue("Should be debugging",subject.isDebugging());
+}
+------
+
+EC: 3.4641016151377544
+
+
+METHOD #5
+-------
+@Test public void givenPostJava5DebugArgumentsIsDebuggingShouldReturnTrue(){
+  DisableOnDebug subject=new DisableOnDebug(new FailOnExecution(),POST_JAVA5_DEBUG_ARGUMENTS);
+  assertTrue("Should be debugging",subject.isDebugging());
+}
+------
+
+EC: 3.4641016151377544
+
+
+METHOD #6
+-------
+@Before public void init(){
+  record=new Record();
+  finishedRecord=new Record();
+  simulateTimePassing(1L);
+}
+------
+
+EC: 3.605551275463989
+
+
+METHOD #7
+-------
+@Test public void notSame(){
+  Object o1=new Object();
+  Object o2=new Object();
+  assertNotSame(o1,o2);
+}
+------
+
+EC: 3.605551275463989
+
+
+METHOD #8
+-------
+@Test(expected=AssertionError.class) public void objectsNotEquals(){
+  assertEquals(new Object(),new Object());
+}
+------
+
+EC: 3.7416573867739413
+
+
+METHOD #9
+-------
+@Test(expected=AssertionError.class) public void objectsNotSame(){
+  assertSame(new Object(),new Object());
+}
+------
+
+EC: 3.7416573867739413
+
+
+METHOD #10
+-------
+@Test(expected=AssertionError.class) public void objectsAreSame(){
+  Object o=new Object();
+  assertNotSame(o,o);
+}
+------
+
+EC: 3.872983346207417
