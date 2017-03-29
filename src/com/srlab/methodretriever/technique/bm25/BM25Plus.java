@@ -82,7 +82,7 @@ public class BM25Plus {
 				fisTargetFile = new FileInputStream(new File(corpusPath+i+".txt"));
 				String methodBody = IOUtils.toString(fisTargetFile, "UTF-8");
 				List<Integer> tokens = getTokens(methodBody);
-				bm25Methods.add(new BM25Method(tokens, methodBody));
+				//bm25Methods.add(new BM25Method(tokens, methodBody));
 				averageDocumentLength += tokens.size();
 				
 			} catch (FileNotFoundException e) {

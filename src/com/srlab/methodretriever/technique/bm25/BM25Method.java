@@ -8,7 +8,27 @@ public class BM25Method implements Comparable<BM25Method>{
 	
 	private double weight;
 	
-	private String methodBody;
+	private String cloneId;
+	
+	private String cloneClassId;
+
+
+	public String getCloneId() {
+		return cloneId;
+	}
+
+	public void setCloneId(String cloneId) {
+		this.cloneId = cloneId;
+	}
+
+	public String getCloneClassId() {
+		return cloneClassId;
+	}
+
+	public void setCloneClassId(String cloneClassId) {
+		this.cloneClassId = cloneClassId;
+	}
+
 
 	public List<Integer> getMethodTokens() {
 		return tokens;
@@ -26,18 +46,18 @@ public class BM25Method implements Comparable<BM25Method>{
 		this.weight = weight;
 	}
 
-	public String getMethodBody() {
-		return methodBody;
-	}
 
-	public void setMethodBody(String methodBody) {
-		this.methodBody = methodBody;
-	}
-
-	public BM25Method(List<Integer> tokens, String methodBody) {
+	public BM25Method(List<Integer> tokens) {
 		super();
 		this.tokens = tokens;
-		this.methodBody = methodBody;
+	}
+	
+
+	public BM25Method(List<Integer> tokens, String cloneId, String cloneClassId) {
+		super();
+		this.tokens = tokens;
+		this.cloneId = cloneId;
+		this.cloneClassId = cloneClassId;
 	}
 
 	@Override
