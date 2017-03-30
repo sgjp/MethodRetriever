@@ -14,6 +14,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
 import org.eclipse.jdt.core.ToolFactory;
 import org.eclipse.jdt.core.compiler.IScanner;
 import org.eclipse.jdt.core.compiler.ITerminalSymbols;
@@ -32,12 +33,7 @@ public class BM25 {
     
     private double averageDocumentLength = 0;
 
-	/** The constant k_1.*/
     private double k_1 = 1.2d;
-
-    
-
-    /** The parameter b.*/
     private double b;
 
     
@@ -56,7 +52,6 @@ public class BM25 {
     	//Open every file, add the methods to the list and get the method length
     	for (int i=0; i < cloneMethods.size();i++){
     		try {
-    			if (cloneMethods.get(i).isToTest()) continue; 
     			
 				fisTargetFile = new FileInputStream(new File(methodsPath+cloneMethods.get(i).getCloneId()+"_"+cloneMethods.get(i).getCloneClassId()+".txt"));
 				String methodBody = IOUtils.toString(fisTargetFile, "UTF-8");
@@ -77,15 +72,6 @@ public class BM25 {
     	averageDocumentLength = averageDocumentLength / numberOfDocuments;
 	}
 
-	/**
-     * Uses BM25 to compute a weight for a term in a document.
-     * @param tf The term frequency in the document
-     * @param numberOfDocuments number of documents
-     * @param docLength the document's length
-     * @param averageDocumentLength average document length
-     * @return the score assigned to a document with the given
-     *         tf and docLength, and other preset parameters
-     */
     public final double score(double tf, 
     		double numberOfDocuments, 
     		double docLength, 
@@ -221,7 +207,7 @@ public class BM25 {
 		return tokens;
 	}
     
-    public List<JavaToken> getHighestIdfTokens(String input, double numberOfDocuments, int ammount){
+    public List<JavaToken> getHighestIdfTokens(String input, double numberOfDocuments, double tokensPercentage){
  
     	
     	List<JavaToken> tokens = new ArrayList<JavaToken>();
@@ -246,28 +232,39 @@ public class BM25 {
 			
 			Collections.sort(tokens);
 			Collections.reverse(tokens);
-			
 		} catch (InvalidInputException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		int ammount = (int) Math.round(tokens.size() * tokensPercentage);
 		if(tokens.size()>ammount){
 			return tokens.subList(0, ammount);
 		}
 		return tokens;
     }
 
-	public List<BM25Method> getRankedCorpus(CloneMethod cloneMethod, List<CloneMethod> cloneTestMethods, List<CloneMethod> cloneMethods, String methodsPath, int highestTokensAmmount) {
-		
+	public List<BM25Method> getRankedCorpus(CloneMethod cloneMethod, List<CloneMethod> cloneTestMethods, List<CloneMethod> cloneMethods, String methodsPath, double queryMethodLenght, double tokensPercentage) {	
 		String query="";
 		try {
 			query = IOUtils.toString(new FileInputStream(new File(methodsPath+cloneMethod.getCloneId()+"_"+cloneMethod.getCloneClassId()+".txt")), "UTF-8");
+			String queryShortened="";
+			String[] queryLines = query.split("\n");
+			int linesToTest = (int) Math.round(queryLines.length * queryMethodLenght);
+			for(int i=0 ; i < linesToTest ; i++){
+				if (i==0){
+					queryShortened=queryLines[i];
+				}else{
+					queryShortened = queryShortened + "\n" + queryLines[i];
+				}
+				
+			}
+			query = queryShortened;
+			
 		} catch (Exception e1) {
 			e1.printStackTrace();
 			return bm25Methods;
 		}
 		
-    	
     	//All the tokens
     	List<Integer> queryTokens = getTokens(query);
     	
@@ -275,7 +272,7 @@ public class BM25 {
     	List<Integer> highIDFQueryTokens = new ArrayList<Integer>(); 
     	
     	//The list of the highestTokensAmmount based on their IDF values
-    	List<JavaToken> highestIDFTokens = getHighestIdfTokens(query, numberOfDocuments, highestTokensAmmount);
+    	List<JavaToken> highestIDFTokens = getHighestIdfTokens(query, numberOfDocuments, tokensPercentage);
     	
     	setDocumentFrequency(queryTokens);
     	

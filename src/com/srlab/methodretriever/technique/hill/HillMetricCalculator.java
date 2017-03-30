@@ -1,10 +1,11 @@
 package com.srlab.methodretriever.technique.hill;
 
 import java.math.BigInteger;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Map;
 
+import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.ToolFactory;
 import org.eclipse.jdt.core.compiler.IScanner;
 import org.eclipse.jdt.core.compiler.ITerminalSymbols;
@@ -13,8 +14,6 @@ import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTParser;
 import org.eclipse.jdt.core.dom.ASTVisitor;
 import org.eclipse.jdt.core.dom.BreakStatement;
-import org.eclipse.jdt.core.dom.CatchClause;
-import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.dom.ConditionalExpression;
 import org.eclipse.jdt.core.dom.DoStatement;
 import org.eclipse.jdt.core.dom.EnhancedForStatement;
@@ -25,7 +24,6 @@ import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.ReturnStatement;
 import org.eclipse.jdt.core.dom.Statement;
 import org.eclipse.jdt.core.dom.SwitchCase;
-import org.eclipse.jdt.core.dom.SwitchStatement;
 import org.eclipse.jdt.core.dom.ThrowStatement;
 import org.eclipse.jdt.core.dom.TryStatement;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
@@ -35,6 +33,8 @@ import org.eclipse.jdt.internal.compiler.ast.ContinueStatement;
 import com.srlab.methodretriever.utility.BigIntegerHammingDistanceCalculator;
 import com.srlab.methodretriever.utility.Parameters;
 import com.srlab.methodretriever.utility.SimHash;
+
+
 
 public class HillMetricCalculator {
 
@@ -138,11 +138,16 @@ public class HillMetricCalculator {
 		}
 	    
 	}
-	public void parse(final String methodBody) {
+	public void parse(final String methodBody) throws ClassCastException{
 		//System.out.println(methodBody);
 		ASTParser parser = ASTParser.newParser(AST.JLS3);
 		parser.setSource(methodBody.toCharArray());
 		parser.setKind(ASTParser.K_CLASS_BODY_DECLARATIONS);
+		
+		Map<String, String> options = JavaCore.getOptions();
+		JavaCore.setComplianceOptions(JavaCore.VERSION_1_7, options);
+		parser.setCompilerOptions(options);
+
 		final TypeDeclaration cu = (TypeDeclaration) parser.createAST(null);
 		cu.accept(new ASTVisitor() {
 

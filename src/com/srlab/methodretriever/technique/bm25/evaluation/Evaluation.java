@@ -13,17 +13,12 @@ import java.util.Random;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
-import org.eclipse.jdt.core.ToolFactory;
-import org.eclipse.jdt.core.compiler.IScanner;
-import org.eclipse.jdt.core.compiler.ITerminalSymbols;
-import org.eclipse.jdt.core.compiler.InvalidInputException;
 
 import com.opencsv.CSVReader;
 import com.srlab.methodretriever.technique.bm25.BM25;
 import com.srlab.methodretriever.technique.bm25.BM25Method;
-import com.srlab.methodretriever.technique.bm25.JavaToken;
 import com.srlab.methodretriever.utility.CloneMethod;
-import com.srlab.methodretriever.utility.MethodExtractor;
+
 
 public class Evaluation {
 	
@@ -34,24 +29,28 @@ public class Evaluation {
 	//Please note the value ends in /
 	public static String methodsPath = "/Users/jsanchez/Documents/jdk_source_function_clones_code/";
 	
+	//The file where the results will be written. This is like the log file of the system.
 	static String resultsFile = "/results/resultsBM25_TEMP.txt"; 
 			
 	public static void main(String[] args) {
 		
-		//The file where the results will be written. This is like the log file of the system.
+		
 		
 		
 		//The percentage of lines that will be used as queryMethods. This number should be less or equal to 1 (100%)
 		double queryMethodLenght = 1.0;
 		
 		//The percentage of methods that will be used as queryMethods. This number should be less or equal to 1 (100%)
-		double queryMethodsQuantity = 0.008;
+		double queryMethodsQuantity = 0.02;
 		
 		//The location of the source code from which the methods will be extracted
 		//String sourceCodePath = "/junit4-master/src";
 		
 		//Number of top methods to recommend (top-k)
 		int kMethods = 5;
+		
+		//Percentage of tokens to be used
+		double percentageOfTokens = 0.5;
 		
 		
 		
@@ -63,7 +62,7 @@ public class Evaluation {
 		
 		
 		List<CloneMethod> cloneTestMethods = getTestMethods (queryMethodsQuantity);
-		List<CloneMethod> cloneMethods = getAllMethods ();
+		List<CloneMethod> cloneMethods = getAllMethods (cloneTestMethods);
 		
 		System.out.println("---Ranking Corpus...");
 		System.out.println("---"+cloneTestMethods.size()+" Methods To be tested----");
@@ -74,7 +73,7 @@ public class Evaluation {
 		for (CloneMethod cloneMethod : cloneTestMethods){
 			
 			System.out.println("Testing method #"+cloneTestMethods.indexOf(cloneMethod) + cloneMethod.getCloneId()+"_"+cloneMethod.getCloneClassId());
-			List<BM25Method> bm25Methods = bm25.getRankedCorpus(cloneMethod, cloneTestMethods, cloneMethods, methodsPath, 10);
+			List<BM25Method> bm25Methods = bm25.getRankedCorpus(cloneMethod, cloneTestMethods, cloneMethods, methodsPath, queryMethodLenght, percentageOfTokens);
 
 			boolean methodFoundFlag = false;
 			for (int j=bm25Methods.size()-1; j>bm25Methods.size()-kMethods;j--){
@@ -84,15 +83,24 @@ public class Evaluation {
 			}
 			
 			if (methodFoundFlag) numberOfMethodsFound++;
- 			System.out.println("---Writing Results...");
-			
-			
 		}
+		
 		double precision = (double) numberOfMethodsFound/(double) cloneTestMethods.size();
 		
+		System.out.println("---Writing Results...");
 		//Writing results
 		try {
-			FileUtils.writeStringToFile(new File(resultsFile),"\n"+kMethods+","+cloneMethods.size()+","+cloneTestMethods.size()+","+numberOfMethodsFound+","+precision, Charset.defaultCharset(), true);
+			
+			FileUtils.writeStringToFile(
+					new File(resultsFile),
+					"\n"+kMethods+","+
+					cloneMethods.size()+
+					","+queryMethodLenght+
+					","+percentageOfTokens+
+					","+cloneTestMethods.size()+
+					","+numberOfMethodsFound+
+					","+precision, 
+					Charset.defaultCharset(), true);
 		} catch (IOException e1) {
 			e1.printStackTrace();
 		}
@@ -157,7 +165,15 @@ public class Evaluation {
 		return cloneMethods;
 	}
 	
-	private static List<CloneMethod> getAllMethods() {
+	//Get all the methods except by the ones that will be tested.
+	private static List<CloneMethod> getAllMethods(List<CloneMethod> cloneTestMethods) {
+		
+		//Go through the test methods and add their clone ids to a list
+		List<String> testClonesIds = new ArrayList<String>();
+		for (CloneMethod cloneTestMethod : cloneTestMethods){
+			testClonesIds.add(cloneTestMethod.getCloneId());
+		}
+		
 		
 		List<CloneMethod> cloneMethods = new ArrayList<CloneMethod>();
 		
@@ -166,18 +182,17 @@ public class Evaluation {
 				String [] splitedName = fileEntry.getName().split("_");
 				String cloneId = splitedName[0];
 				String cloneClassId = splitedName[1];
+				if (testClonesIds.contains(cloneId)){ // Avoid cloneIds already present in the test list
+					continue;
+				}
 				if (cloneClassId.contains(".")){
 					cloneMethods.add(new CloneMethod(cloneId,cloneClassId.split("\\.")[0], false));
 				}else{
 					cloneMethods.add(new CloneMethod(cloneId,cloneClassId, false));
 				}
-				
-				
 			}
 	    }
-		
 		return cloneMethods;
- 
 	}
 
 	
