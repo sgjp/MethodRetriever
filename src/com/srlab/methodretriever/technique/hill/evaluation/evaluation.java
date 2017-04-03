@@ -30,10 +30,10 @@ public class evaluation {
 	
 	
 	//The percentage of lines that will be used as queryMethods. This number should be less or equal to 1 (100%)
-	public static double queryMethodLenght = 1;
+	public static double queryMethodLenght = 0.75;
 			
 	//The percentage of methods that will be used as queryMethods. This number should be less or equal to 1 (100%)
-	public static double queryMethodsQuantity = 0.2;
+	public static double queryMethodsQuantity = 0.1;
 	
 	//The location of the source code from which the methods will be extracted
 	//String sourceCodePath = "/junit4-master/src";
@@ -95,24 +95,12 @@ private static List<HillMetricMethod> getRankedCorpus(CloneMethod cloneTestMetho
 	String query="";
 	try {
 		query = IOUtils.toString(new FileInputStream(new File(methodsPath+cloneTestMethod.getCloneId()+"_"+cloneTestMethod.getCloneClassId()+".txt")), "UTF-8");
-		String queryShortened="";
-		String[] queryLines = query.split("\n");
-		int linesToTest = (int) Math.round(queryLines.length * queryMethodLenght);
-		for(int i=0 ; i < linesToTest ; i++){
-			if (i==0){
-				queryShortened=queryLines[i];
-			}else{
-				queryShortened = queryShortened + "\n" + queryLines[i];
-			}
-			
-		}
-		query = queryShortened;
 	} catch (Exception e1) {
 		e1.printStackTrace();
 		return hillMetricList;
 	}
 	
-	HillMetricCalculator qm = new HillMetricCalculator(query);
+	HillMetricCalculator qm = new HillMetricCalculator(query, queryMethodLenght);
 	
 	for (int i=0; i < cloneMethods.size();i++){
 		try {
@@ -122,7 +110,7 @@ private static List<HillMetricMethod> getRankedCorpus(CloneMethod cloneTestMetho
 			System.out.println(cloneMethods.get(i).getCloneId()+"_"+cloneMethods.get(i).getCloneClassId());
 			fisTargetFile.close();
 			
-			HillMetricCalculator mc = new HillMetricCalculator(methodBody);
+			HillMetricCalculator mc = new HillMetricCalculator(methodBody, 1.0);
 			hillMetricList.add(new HillMetricMethod(mc,mc.getEuclideanDistance(qm),cloneMethods.get(i).getCloneId(),cloneMethods.get(i).getCloneClassId()));
 
 			

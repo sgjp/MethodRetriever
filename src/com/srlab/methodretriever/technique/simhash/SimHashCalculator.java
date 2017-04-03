@@ -34,6 +34,7 @@ public class SimHashCalculator {
     
     public SimHashCalculator(List<CloneMethod> cloneMethods, String methodsPath) {
     	this.methodsPath = methodsPath;
+    	simHashMethods = new HashMap<SimHash, String>();
         for (int i=0; i < cloneMethods.size();i++){
             try {
                 FileInputStream fisTargetFile;
@@ -57,33 +58,20 @@ public class SimHashCalculator {
     }
 
 
-    private List<SimHashMethod> rankCorpus(CloneMethod testMethod){
+    public List<SimHashMethod> rankCorpus(String methodBody){
     	List<SimHashMethod> simHashList = new ArrayList<SimHashMethod>();
-    	SimHash testHash = null;
-    	
-    	try{
-    		FileInputStream fisTargetFile;
-            fisTargetFile = new FileInputStream(new File(methodsPath+testMethod.getCloneId()+"_"+testMethod.getCloneClassId()+".txt"));
-            String methodBody = IOUtils.toString(fisTargetFile, "UTF-8");
-            fisTargetFile.close();
-        	testHash = new SimHash(methodBody, 64);
-    	} catch (FileNotFoundException e){
-    		e.printStackTrace();
-    	} catch (IOException e) {
-			e.printStackTrace();
-		}
-    
-    	if (testHash==null) return simHashList;
+    	SimHash testHash = new SimHash(methodBody, 64);
     	
     	 Iterator it = simHashMethods.entrySet().iterator();
     	    while (it.hasNext()) {
     	        Map.Entry pair = (Map.Entry)it.next();
     	        int hammingDistance = testHash.hammingDistance((SimHash)pair.getKey());
     	        simHashList.add(new SimHashMethod((String)pair.getValue(),hammingDistance));
-    	        it.remove(); // avoids a ConcurrentModificationException
+    	        //it.remove(); 
     	    }
     	
     	Collections.sort(simHashList);
+    	Collections.reverse(simHashList);
     	return simHashList;
     }
 

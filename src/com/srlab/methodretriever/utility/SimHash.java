@@ -32,7 +32,7 @@ public class SimHash {
 		
 		final StringTokenizer stringTokens = new StringTokenizer(this.tokens);
 		//
-		System.out.println("Token Count: " + stringTokens.countTokens());
+		//System.out.println("Token Count: " + stringTokens.countTokens());
 
 		while (stringTokens.hasMoreTokens()) {
 			final String temp = stringTokens.nextToken();
@@ -60,8 +60,8 @@ public class SimHash {
 			}
 		}
 		this.strSimHash = simHashBuffer.toString();
-		System.out.println(this.strSimHash + " length "
-				+ this.strSimHash.length());
+		//System.out.println(this.strSimHash + " length "
+		//		+ this.strSimHash.length());
 		return fingerprint;
 	}
 

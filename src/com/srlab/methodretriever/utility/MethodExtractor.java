@@ -107,7 +107,7 @@ public class MethodExtractor extends ASTVisitor{
 		//	IOUtils.write(md.toString(), new BufferedWriter(new FileWriter(this.currentFile.getParent()+File.separator+index)));
 			//IOUtils.write(md.toString(), new BufferedWriter(new FileWriter("results.txt")),true);
 			
-			HillMetricCalculator mc = new HillMetricCalculator(md.toString());
+			HillMetricCalculator mc = new HillMetricCalculator(md.toString(), 1.0);
 			FileUtils.writeStringToFile(new File(resultsLocation+"/"+index+".txt"), md.toString(), Charset.defaultCharset(), true);
 			index++;
 		} catch (IOException e) {

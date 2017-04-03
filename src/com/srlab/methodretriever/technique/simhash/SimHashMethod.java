@@ -25,6 +25,35 @@ public class SimHashMethod implements Comparable<SimHashMethod> {
 	}
 	
 	
+	
+
+	/**
+	 * @return the cloneId
+	 */
+	public String getCloneId() {
+		return cloneId;
+	}
+
+	/**
+	 * @param cloneId the cloneId to set
+	 */
+	public void setCloneId(String cloneId) {
+		this.cloneId = cloneId;
+	}
+
+	/**
+	 * @return the cloneClassId
+	 */
+	public String getCloneClassId() {
+		return cloneClassId;
+	}
+
+	/**
+	 * @param cloneClassId the cloneClassId to set
+	 */
+	public void setCloneClassId(String cloneClassId) {
+		this.cloneClassId = cloneClassId;
+	}
 
 	@Override
 	public int compareTo(SimHashMethod o) {

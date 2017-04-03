@@ -5,10 +5,12 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 
@@ -28,10 +30,10 @@ public class Evaluation {
 		
 		
 	//The percentage of lines that will be used as queryMethods. This number should be less or equal to 1 (100%)
-	public static double queryMethodLenght = 0.8;
+	public static double queryMethodLenght = 0.5;
 				
 	//The percentage of methods that will be used as queryMethods. This number should be less or equal to 1 (100%)
-	public static double queryMethodsQuantity = 0.0005;
+	public static double queryMethodsQuantity = 0.4;
 		
 	//The location of the source code from which the methods will be extracted
 	//String sourceCodePath = "/junit4-master/src";
@@ -40,7 +42,7 @@ public class Evaluation {
 	public static int kMethods = 5;
 		
 	//The file where the results will be written. This is like the log file of the system.
-	static String resultsFile = "/results/resultsHYR_TEMP.txt"; 
+	static String resultsFile = "/results/resultsSimHash_TEMP.txt"; 
 	
 	
 	public static void main(String[] args) {
@@ -57,14 +59,41 @@ public class Evaluation {
 		
 		for (CloneMethod cloneTestMethod : cloneTestMethods){
 			
+			System.out.println("TESTING METHOD: "+cloneTestMethod.getCloneId()+"_"+cloneTestMethod.getCloneClassId());
+			
 			List<SimHashMethod> simHashMethodList = getRankedCorpus(cloneTestMethod, cloneMethods, simHashCalculator);
 			
 			boolean methodFoundFlag = false;
 			for (int j=0; j<kMethods;j++){
-				
+				if (cloneTestMethod.getCloneClassId().equals(simHashMethodList.get(j).getCloneClassId())){
+					methodFoundFlag = true;
+				}
+				//System.out.println("Method Retrieved: "+simHashMethodList.get(j).getCloneId()+"_"+simHashMethodList.get(j).getCloneClassId() + " WITH HAMMING DISTANCE: "+simHashMethodList.get(j).hammingDistance);
 			}
 			if (methodFoundFlag) numberOfMethodsFound++;
 		}
+		
+		double precision = (double) numberOfMethodsFound/(double) cloneTestMethods.size();
+		
+		System.out.println("---Writing Results...");
+		//Writing results
+		try {
+			
+			FileUtils.writeStringToFile(
+					new File(resultsFile),
+					"\n"+kMethods+","+
+					cloneMethods.size()+
+					","+queryMethodLenght+
+					","+cloneTestMethods.size()+
+					","+numberOfMethodsFound+
+					","+precision, 
+					Charset.defaultCharset(), true);
+		} catch (IOException e1) {
+			e1.printStackTrace();
+		}
+		
+		
+		System.out.println("---Done!");
 	}
 	
 	
@@ -83,20 +112,41 @@ public class Evaluation {
 				}else{
 					queryShortened = queryShortened + "\n" + queryLines[i];
 				}
-				
 			}
 			query = queryShortened;
+		} catch (FileNotFoundException e){ //When the file is not found, check if it exists with another CloneClassId
+			System.out.println(cloneTestMethod.getCloneId()+"_"+cloneTestMethod.getCloneClassId() + " Not Found. Searching with another CodeClassId");
+			for (final File fileEntry : new File(methodsPath).listFiles()) {
+				if(fileEntry.getName().substring(0, fileEntry.getName().indexOf("_")).equals(cloneTestMethod.getCloneId())){
+					System.out.println("FOUND: " + fileEntry.getName());
+					try {
+						query = IOUtils.toString(new FileInputStream(fileEntry),"UTF-8");
+						String queryShortened="";
+						String[] queryLines = query.split("\n");
+						int linesToTest = (int) Math.round(queryLines.length * queryMethodLenght);
+						for(int i=0 ; i < linesToTest ; i++){
+							if (i==0){
+								queryShortened=queryLines[i];
+							}else{
+								queryShortened = queryShortened + "\n" + queryLines[i];
+							}
+						}
+						query = queryShortened;
+					} catch (Exception e1) {
+						e1.printStackTrace();
+						return simHashMethodList;
+					} 
+					break;
+				}
+			}
+			
 		} catch (Exception e1) {
 			e1.printStackTrace();
 			return simHashMethodList;
 		}
 		
-		simHashCalculator.
+		return simHashCalculator.rankCorpus(query);
 		
-		
-		
-		
-		return null;
 	}
 
 

@@ -45,7 +45,7 @@ public class HillMetricCalculator {
 	private String methodReturnType;
 	private HashMap<Integer,Integer> hmBasicTokenFrequencyCount;
 
-	public HillMetricCalculator(String methodBody) {
+	public HillMetricCalculator(String methodBody, double queryMethodLenght) {
 		this.methodReturnType = null;
 		this.lines = -1;
 		this.numOfArguments = -1;
@@ -54,7 +54,7 @@ public class HillMetricCalculator {
 		this.hmBasicTokenFrequencyCount = new HashMap();
 
 		this.parse(methodBody);
-		this.processTokens(methodBody);
+		this.processTokens(methodBody, queryMethodLenght);
 	}
 	
 	public double getEuclideanDistance(HillMetricCalculator metricCalculator){
@@ -115,22 +115,43 @@ public class HillMetricCalculator {
 		return lines.length;
 	}
 
-	private void processTokens(String input){
+	private void processTokens(String input, double queryMethodLenght){
+		
+		String inputShortened="";
+		String[] queryLines = input.split("\n");
+		int linesToTest = (int) Math.round(queryLines.length * queryMethodLenght);
+		for(int i=0 ; i < linesToTest ; i++){
+			if (i==0){
+				inputShortened=queryLines[i];
+			}else{
+				inputShortened = inputShortened + "\n" + queryLines[i];
+			}
+		}
+		input = inputShortened;
+		
+		
 		IScanner scanner = ToolFactory.createScanner(false, false, false, false);
 		scanner.setSource(input.toCharArray());
 		int token;
 		try {
 			while(true){
-				token = scanner.getNextToken();
-				if (token == ITerminalSymbols.TokenNameEOF) break;
-				if(hmBasicTokenFrequencyCount.containsKey(token)){
-					int count = hmBasicTokenFrequencyCount.get(token);
-					hmBasicTokenFrequencyCount.put(token,count+1);
+				try{
+					token = scanner.getNextToken();
+					if (token == ITerminalSymbols.TokenNameEOF) break;
+					if(hmBasicTokenFrequencyCount.containsKey(token)){
+						int count = hmBasicTokenFrequencyCount.get(token);
+						hmBasicTokenFrequencyCount.put(token,count+1);
+					}
+					else{
+						hmBasicTokenFrequencyCount.put(token,1);
+					}
+					//System.out.println(token + " : " + new String(scanner.getCurrentTokenSource()));
+				}catch (InvalidInputException e){
+					if(!e.getMessage().equals("Invalid_Float_Literal") && !e.getMessage().equals("Invalid_Hexa_Literal")){
+						throw new InvalidInputException(e.getMessage());
+					}
 				}
-				else{
-					hmBasicTokenFrequencyCount.put(token,1);
-				}
-				//System.out.println(token + " : " + new String(scanner.getCurrentTokenSource()));
+			
 			}
 		} catch (InvalidInputException e) {
 			// TODO Auto-generated catch block
@@ -331,8 +352,8 @@ public class HillMetricCalculator {
 		"\n} finally {"+
 		"\nbr.close();"+
 		"\n}}";
-		HillMetricCalculator mc1 = new HillMetricCalculator(methodBody2);
-		HillMetricCalculator mc2 = new HillMetricCalculator(methodBody3);
+		HillMetricCalculator mc1 = new HillMetricCalculator(methodBody2, 1.0);
+		HillMetricCalculator mc2 = new HillMetricCalculator(methodBody3, 1.0);
 		
 		mc1.print();
 		mc2.print();
