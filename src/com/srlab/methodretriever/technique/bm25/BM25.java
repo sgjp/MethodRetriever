@@ -194,7 +194,8 @@ public class BM25 {
 					tokens.add(token);
 				}catch (InvalidInputException e){
 					//Some methods have doubles definitions that cause this exception, those tokens will be skipped
-					if(!e.getMessage().equals("Invalid_Float_Literal") && !e.getMessage().equals("Invalid_Hexa_Literal")){
+					//Also, when methods are shortened, the last exception could be thrown.
+					if(!e.getMessage().equals("Invalid_Float_Literal") && !e.getMessage().equals("Invalid_Hexa_Literal") && !e.getMessage().equals("Unterminated_Comment") ){
 						throw new InvalidInputException(e.getMessage());
 					}
 				}
@@ -217,8 +218,9 @@ public class BM25 {
 		IScanner scanner = ToolFactory.createScanner(false, false, false, false);
 		scanner.setSource(input.toCharArray());
 		int token;
-		try {
+		try{
 			while(true){
+				try{
 				token = scanner.getNextToken();
 				if (token == ITerminalSymbols.TokenNameEOF) break;
 				
@@ -228,14 +230,18 @@ public class BM25 {
 					tokens.add(new JavaToken(token,idf));
 					usedTokens.add(token);
 				}
+				}catch (InvalidInputException e){
+					if(!e.getMessage().equals("Invalid_Float_Literal") && !e.getMessage().equals("Invalid_Hexa_Literal") && !e.getMessage().equals("Unterminated_Comment") ){
+						throw new InvalidInputException(e.getMessage());
+					}
+				}
 			}
-			
-			Collections.sort(tokens);
-			Collections.reverse(tokens);
 		} catch (InvalidInputException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+			Collections.sort(tokens);
+			Collections.reverse(tokens);
+		
 		int ammount = (int) Math.round(tokens.size() * tokensPercentage);
 		if(tokens.size()>ammount){
 			return tokens.subList(0, ammount);

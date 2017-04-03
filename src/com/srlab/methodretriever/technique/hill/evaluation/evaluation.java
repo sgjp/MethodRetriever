@@ -30,10 +30,10 @@ public class evaluation {
 	
 	
 	//The percentage of lines that will be used as queryMethods. This number should be less or equal to 1 (100%)
-	public static double queryMethodLenght = 0.8;
+	public static double queryMethodLenght = 1;
 			
 	//The percentage of methods that will be used as queryMethods. This number should be less or equal to 1 (100%)
-	public static double queryMethodsQuantity = 0.0005;
+	public static double queryMethodsQuantity = 0.2;
 	
 	//The location of the source code from which the methods will be extracted
 	//String sourceCodePath = "/junit4-master/src";

@@ -38,10 +38,11 @@ public class Evaluation {
 		
 		
 		//The percentage of lines that will be used as queryMethods. This number should be less or equal to 1 (100%)
-		double queryMethodLenght = 1.0;
+		double queryMethodLenght = 0.75
+				;
 		
 		//The percentage of methods that will be used as queryMethods. This number should be less or equal to 1 (100%)
-		double queryMethodsQuantity = 0.02;
+		double queryMethodsQuantity = 0.5;
 		
 		//The location of the source code from which the methods will be extracted
 		//String sourceCodePath = "/junit4-master/src";
@@ -57,7 +58,7 @@ public class Evaluation {
 		//Extract all the methods from the source code
 		//Every method will be put in a different file numerically named like this: {1.txt, 2.txt...n.txt}
 		//System.out.println("---Generating Methods...");
-	//	MethodExtractor md = new MethodExtractor(new File(sourceCodePath),methodsPath);
+		//MethodExtractor md = new MethodExtractor(new File(sourceCodePath),methodsPath);
 				
 		
 		
@@ -126,7 +127,9 @@ public class Evaluation {
 		
 		
 		int numberOfLines = StringUtils.countMatches(content, "\n");
-		int numberOfTestCases = (int) Math.round(numberOfLines * queryMethodsQuantity);
+		int numberOfMethods = StringUtils.countMatches(content, ",");
+		
+		int numberOfTestCases = (int) Math.round(numberOfMethods * queryMethodsQuantity);
 		Random rand = new Random();
 		
 		for (int i=0; i < numberOfTestCases ;i++){
