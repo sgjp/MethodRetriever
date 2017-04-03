@@ -52,10 +52,12 @@ public class Evaluation {
 		
 		//Count how many times the clone method was found among the top-k methods
 		int numberOfMethodsFound = 0;
-				
+		
+		SimHashCalculator simHashCalculator = new SimHashCalculator(cloneMethods, methodsPath);
+		
 		for (CloneMethod cloneTestMethod : cloneTestMethods){
 			
-			List<SimHashMethod> simHashMethodList = getRankedCorpus(cloneTestMethod, cloneMethods);
+			List<SimHashMethod> simHashMethodList = getRankedCorpus(cloneTestMethod, cloneMethods, simHashCalculator);
 			
 			boolean methodFoundFlag = false;
 			for (int j=0; j<kMethods;j++){
@@ -66,7 +68,7 @@ public class Evaluation {
 	}
 	
 	
-	private static List<SimHashMethod> getRankedCorpus(CloneMethod cloneTestMethod, List<CloneMethod> cloneMethods) {
+	private static List<SimHashMethod> getRankedCorpus(CloneMethod cloneTestMethod, List<CloneMethod> cloneMethods, SimHashCalculator simHashCalculator) {
 		List<SimHashMethod> simHashMethodList = new ArrayList<SimHashMethod>();
 		String query="";
 		
@@ -89,8 +91,9 @@ public class Evaluation {
 			return simHashMethodList;
 		}
 		
+		simHashCalculator.
 		
-		SimHashCalculator simHashCalculator = new SimHashCalculator(cloneMethods, methodsPath);
+		
 		
 		
 		return null;

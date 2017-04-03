@@ -4,7 +4,12 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 import org.apache.commons.io.IOUtils;
@@ -23,11 +28,12 @@ public class SimHashCalculator {
 	static String DATABASE = "methods";
 	static String BTREE_NAME = "SimHashMethods";
     
+    private HashMap<SimHash, String> simHashMethods;
     
-    
+    private String methodsPath;
     
     public SimHashCalculator(List<CloneMethod> cloneMethods, String methodsPath) {
-    	initTree();
+    	this.methodsPath = methodsPath;
         for (int i=0; i < cloneMethods.size();i++){
             try {
                 FileInputStream fisTargetFile;
@@ -35,7 +41,9 @@ public class SimHashCalculator {
                 String methodBody = IOUtils.toString(fisTargetFile, "UTF-8");
                 fisTargetFile.close();
                 SimHash hash = new SimHash(methodBody, 64);
-                addItemToBTree(hash,cloneMethods.get(i).getCloneId()+"_"+cloneMethods.get(i).getCloneClassId());
+                
+                simHashMethods.put(hash, cloneMethods.get(i).getCloneId()+"_"+cloneMethods.get(i).getCloneClassId());
+                //addItemToBTree(hash,cloneMethods.get(i).getCloneId()+"_"+cloneMethods.get(i).getCloneClassId());
                 
             }catch (FileNotFoundException e){
                 e.printStackTrace();
@@ -44,12 +52,40 @@ public class SimHashCalculator {
             }
         }
         
-        printItemsFromTree(10);
+       // printItemsFromTree(10);
         
     }
 
 
-
+    private List<SimHashMethod> rankCorpus(CloneMethod testMethod){
+    	List<SimHashMethod> simHashList = new ArrayList<SimHashMethod>();
+    	SimHash testHash = null;
+    	
+    	try{
+    		FileInputStream fisTargetFile;
+            fisTargetFile = new FileInputStream(new File(methodsPath+testMethod.getCloneId()+"_"+testMethod.getCloneClassId()+".txt"));
+            String methodBody = IOUtils.toString(fisTargetFile, "UTF-8");
+            fisTargetFile.close();
+        	testHash = new SimHash(methodBody, 64);
+    	} catch (FileNotFoundException e){
+    		e.printStackTrace();
+    	} catch (IOException e) {
+			e.printStackTrace();
+		}
+    
+    	if (testHash==null) return simHashList;
+    	
+    	 Iterator it = simHashMethods.entrySet().iterator();
+    	    while (it.hasNext()) {
+    	        Map.Entry pair = (Map.Entry)it.next();
+    	        int hammingDistance = testHash.hammingDistance((SimHash)pair.getKey());
+    	        simHashList.add(new SimHashMethod((String)pair.getValue(),hammingDistance));
+    	        it.remove(); // avoids a ConcurrentModificationException
+    	    }
+    	
+    	Collections.sort(simHashList);
+    	return simHashList;
+    }
 
 	private void printItemsFromTree(int i) {
 		RecordManager recman;
@@ -93,9 +129,6 @@ public class SimHashCalculator {
 
 		
 	}
-
-
-
 
 
 
