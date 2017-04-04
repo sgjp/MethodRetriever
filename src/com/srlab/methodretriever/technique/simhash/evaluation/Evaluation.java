@@ -16,7 +16,6 @@ import org.apache.commons.lang.StringUtils;
 
 import com.opencsv.CSVReader;
 import com.srlab.methodretriever.technique.simhash.SimHashCalculator;
-import com.srlab.methodretriever.technique.simhash.SimHashMethod;
 import com.srlab.methodretriever.utility.CloneMethod;
 
 public class Evaluation {
@@ -33,7 +32,7 @@ public class Evaluation {
 	public static double queryMethodLenght = 0.25;
 				
 	//The percentage of methods that will be used as queryMethods. This number should be less or equal to 1 (100%)
-	public static double queryMethodsQuantity = 0.0139;
+	public static double queryMethodsQuantity = 0.5;
 		
 	//The location of the source code from which the methods will be extracted
 	//String sourceCodePath = "/junit4-master/src";
@@ -42,7 +41,7 @@ public class Evaluation {
 	public static int kMethods = 5;
 		
 	//The file where the results will be written. This is like the log file of the system.
-	static String resultsFile = "/results/resultsSimHash_TEMP.txt"; 
+	static String resultsFile = "/results/resultsSimHash.txt"; 
 	
 	
 	public static void main(String[] args) {
@@ -59,16 +58,19 @@ public class Evaluation {
 		
 		for (CloneMethod cloneTestMethod : cloneTestMethods){
 			
-			System.out.println("TESTING METHOD: "+cloneTestMethod.getCloneId()+"_"+cloneTestMethod.getCloneClassId());
+			System.out.println("TESTING METHOD #"+cloneTestMethods.indexOf(cloneTestMethod)+ " : "+cloneTestMethod.getCloneId()+"_"+cloneTestMethod.getCloneClassId());
 			
-			List<SimHashMethod> simHashMethodList = getRankedCorpus(cloneTestMethod, cloneMethods, simHashCalculator);
+			List<String> simHashMethodList = getRankedCorpus(cloneTestMethod, cloneMethods, simHashCalculator, kMethods);
 			
 			boolean methodFoundFlag = false;
-			for (int j=0; j<kMethods;j++){
-				if (cloneTestMethod.getCloneClassId().equals(simHashMethodList.get(j).getCloneClassId())){
+			for (String methodId : simHashMethodList){
+				String cloneClassId = methodId.split("_")[1];
+				
+				if ( cloneClassId.equals(cloneTestMethod.getCloneClassId()))
+				{
 					methodFoundFlag = true;
 				}
-				//System.out.println("Method Retrieved: "+simHashMethodList.get(j).getCloneId()+"_"+simHashMethodList.get(j).getCloneClassId() + " WITH HAMMING DISTANCE: "+simHashMethodList.get(j).hammingDistance);
+				//System.out.println("Method Retrieved: "+methodId);
 			}
 			if (methodFoundFlag) numberOfMethodsFound++;
 		}
@@ -97,8 +99,8 @@ public class Evaluation {
 	}
 	
 	
-	private static List<SimHashMethod> getRankedCorpus(CloneMethod cloneTestMethod, List<CloneMethod> cloneMethods, SimHashCalculator simHashCalculator) {
-		List<SimHashMethod> simHashMethodList = new ArrayList<SimHashMethod>();
+	private static List<String> getRankedCorpus(CloneMethod cloneTestMethod, List<CloneMethod> cloneMethods, SimHashCalculator simHashCalculator, int kMethods) {
+		List<String> simHashMethodList = new ArrayList<String>();
 		String query="";
 		
 		try {
@@ -145,7 +147,8 @@ public class Evaluation {
 			return simHashMethodList;
 		}
 		
-		return simHashCalculator.rankCorpus(query);
+		
+		return simHashCalculator.rankCorpus(query,cloneTestMethod.getCloneId()+"_"+cloneTestMethod.getCloneClassId(), kMethods);
 		
 	}
 
@@ -208,8 +211,8 @@ private static List<CloneMethod> getTestMethods(double queryMethodsQuantity) {
 		return cloneMethods;
 	}
 
-	//Get all the methods except by the ones that will be tested.
-		private static List<CloneMethod> getAllMethods(List<CloneMethod> cloneTestMethods) {
+//Get all the methods except by the ones that will be tested.
+private static List<CloneMethod> getAllMethods(List<CloneMethod> cloneTestMethods) {
 			
 			//Go through the test methods and add their clone ids to a list
 			List<String> testClonesIds = new ArrayList<String>();

@@ -141,6 +141,15 @@ public class SimHash {
 		return characters;
 	}
 
+	
+	public BigInteger getIntSimHash() {
+		return intSimHash;
+	}
+
+	public String getStrSimHash() {
+		return strSimHash;
+	}
+
 	/*public static void main(String[] args) {
 		String s = "This is a test string for testing";
 
@@ -238,7 +247,5 @@ public class SimHash {
 		System.out.println("Total time: "+ (endTime-startTime));
 	}*/
 
-	public static void main(String args[]){
-		
-	}
+	
 }
