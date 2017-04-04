@@ -30,10 +30,10 @@ public class evaluation {
 	
 	
 	//The percentage of lines that will be used as queryMethods. This number should be less or equal to 1 (100%)
-	public static double queryMethodLenght = 0.5;
+	public static double queryMethodLenght = 0.75;
 			
 	//The percentage of methods that will be used as queryMethods. This number should be less or equal to 1 (100%)
-	public static double queryMethodsQuantity = 0.1;
+	public static double queryMethodsQuantity = 0.0139;
 	
 	//The location of the source code from which the methods will be extracted
 	//String sourceCodePath = "/junit4-master/src";
@@ -53,25 +53,52 @@ public static void main(String[] args) {
 		List<CloneMethod> cloneTestMethods = getTestMethods (queryMethodsQuantity);
 		List<CloneMethod> cloneMethods = getAllMethods (cloneTestMethods);
 		
+		System.out.println("---Ranking Corpus...");
+		System.out.println("---Generating Feature vectors...");
+		//This structure will contain every hillmetriccalculator (Feature Vector) for the methods
+		List<HillMetricCalculator> hillMetricCalculatorList = new ArrayList<HillMetricCalculator>();
+		for (CloneMethod cloneMethod: cloneMethods){
+			try{
+			FileInputStream fisTargetFile;
+			fisTargetFile = new FileInputStream(new File(methodsPath+cloneMethod.getCloneId()+"_"+cloneMethod.getCloneClassId()+".txt"));
+			String methodBody = IOUtils.toString(fisTargetFile, "UTF-8");
+			//System.out.println(cloneMethods.get(i).getCloneId()+"_"+cloneMethods.get(i).getCloneClassId());
+			fisTargetFile.close();
+			
+			HillMetricCalculator mc = new HillMetricCalculator(methodBody, 1.0, cloneMethod.getCloneId(), cloneMethod.getCloneClassId() );
+			hillMetricCalculatorList.add(mc);
+			
+			}catch (FileNotFoundException e){
+				e.printStackTrace();
+			} catch (IOException e) {
+				e.printStackTrace();
+			} catch (ClassCastException e){
+				//Some Methods are not being parsed, probably because the JDT version compiles up to Java 7 and some methods are Java 8, for now, those methods are being skipped as the don't represent an important number
+			}
+		}
 		
 	
-		System.out.println("---Ranking Corpus...");
+		
 		System.out.println("---"+cloneTestMethods.size()+" Methods To be tested----");
 	
-	    //Count how many times the clone method was found among the top-k methods
+	    //This is to keep track of the methods recommended that are clones
 		int numberOfMethodsFound = 0;
 		
 		for (CloneMethod cloneTestMethod : cloneTestMethods){
 			
-			System.out.println("Testing Method #"+ cloneTestMethods.indexOf(cloneTestMethod)+ " Of "+cloneTestMethods.size());
-			List<HillMetricMethod> hillMetricList = getRankedCorpus(cloneTestMethod, cloneMethods);
+			System.out.println("Testing Method #"+ cloneTestMethods.indexOf(cloneTestMethod)+ " Of "+cloneTestMethods.size() +" "+cloneTestMethod.getCloneId()+"_"+cloneTestMethod.getCloneClassId());
+			List<HillMetricMethod> hillMetricList = getRankedCorpus(cloneTestMethod, cloneMethods, hillMetricCalculatorList);
+			if(hillMetricList.size()==0) continue;
 			
+			//For each testMethod, go through the top-k recomendations and validate if they're clones or not
 			boolean methodFoundFlag = false;
 			for (int j=0; j<kMethods;j++){
+				System.out.println("TOP "+j+" : "+hillMetricList.get(j).getCloneId()+"_"+hillMetricList.get(j).getCloneClassId());
 				if (cloneTestMethod.getCloneClassId().equals(hillMetricList.get(j).getCloneClassId())){
 					methodFoundFlag = true;
 				}
 			}
+			//The flag and this count is to only count once if the method is found among the top-k methods, if two clones are find, only count once
 			if (methodFoundFlag) numberOfMethodsFound++;
 		}
 		
@@ -90,39 +117,55 @@ public static void main(String[] args) {
 	}
 
 
-private static List<HillMetricMethod> getRankedCorpus(CloneMethod cloneTestMethod, List<CloneMethod> cloneMethods) {
+private static List<HillMetricMethod> getRankedCorpus(CloneMethod cloneTestMethod, List<CloneMethod> cloneMethods, List<HillMetricCalculator> hillMetricCalculatorList) {
 	List<HillMetricMethod> hillMetricList = new ArrayList<HillMetricMethod>();
 	
 	String query="";
 	try {
 		query = IOUtils.toString(new FileInputStream(new File(methodsPath+cloneTestMethod.getCloneId()+"_"+cloneTestMethod.getCloneClassId()+".txt")), "UTF-8");
+	} catch (FileNotFoundException e){ //When the file is not found, check if it exists with another CloneClassId
+		System.out.println(cloneTestMethod.getCloneId()+"_"+cloneTestMethod.getCloneClassId() + " Not Found. Searching with another CodeClassId");
+		for (final File fileEntry : new File(methodsPath).listFiles()) {
+			if(fileEntry.getName().substring(0, fileEntry.getName().indexOf("_")).equals(cloneTestMethod.getCloneId())){
+				System.out.println("FOUND: " + fileEntry.getName());
+				try {
+					query = IOUtils.toString(new FileInputStream(fileEntry),"UTF-8");
+				} catch (Exception e1) {
+					e1.printStackTrace();
+					return hillMetricList;
+				} 
+				break;
+			}
+		}
+		
 	} catch (Exception e1) {
 		e1.printStackTrace();
 		return hillMetricList;
 	}
 	
-	HillMetricCalculator qm = new HillMetricCalculator(query, queryMethodLenght);
 	
-	for (int i=0; i < cloneMethods.size();i++){
-		try {
-			FileInputStream fisTargetFile;
-			fisTargetFile = new FileInputStream(new File(methodsPath+cloneMethods.get(i).getCloneId()+"_"+cloneMethods.get(i).getCloneClassId()+".txt"));
-			String methodBody = IOUtils.toString(fisTargetFile, "UTF-8");
-			//System.out.println(cloneMethods.get(i).getCloneId()+"_"+cloneMethods.get(i).getCloneClassId());
-			fisTargetFile.close();
-			
-			HillMetricCalculator mc = new HillMetricCalculator(methodBody, 1.0);
-			hillMetricList.add(new HillMetricMethod(mc,mc.getEuclideanDistance(qm),cloneMethods.get(i).getCloneId(),cloneMethods.get(i).getCloneClassId()));
+	try{
+		HillMetricCalculator qm = new HillMetricCalculator(query, queryMethodLenght, cloneTestMethod.getCloneId(), cloneTestMethod.getCloneClassId());
+		for (int i=0; i < hillMetricCalculatorList.size();i++){
+			try {
+				HillMetricCalculator mc = hillMetricCalculatorList.get(i);
+				hillMetricList.add(new HillMetricMethod(mc,mc.getEuclideanDistance(qm),mc.getCloneId(),mc.getCloneClassId()));
 
-			
-		}catch (FileNotFoundException e){
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		} catch (ClassCastException e){
-			//Some Methods are not being parse, probably because the JDT version compiles up to Java 7 and some methods are Java 8, for now, those methods are being skipped as the don't represent an important number
+			} catch (ClassCastException e){
+				e.printStackTrace();
+				return hillMetricList;
+				//Some Methods are not being parsed, probably because the JDT version compiles up to Java 7 and some methods are Java 8, for now, those methods are being skipped as the don't represent an important number
+			}
 		}
+		
+	}catch (ClassCastException e){
+		e.printStackTrace();
+		return hillMetricList;
+		//Some Methods are not being parsed, probably because the JDT version compiles up to Java 7 and some methods are Java 8, for now, those methods are being skipped as they don't represent an important number
 	}
+	
+	
+	
 	Collections.sort(hillMetricList);
 	return hillMetricList;
 }
@@ -145,7 +188,9 @@ private static List<CloneMethod> getTestMethods(double queryMethodsQuantity) {
 	
 	
 	int numberOfLines = StringUtils.countMatches(content, "\n");
-	int numberOfTestCases = (int) Math.round(numberOfLines * queryMethodsQuantity);
+	int numberOfMethods = StringUtils.countMatches(content, ",");
+	
+	int numberOfTestCases = (int) Math.round(numberOfMethods * queryMethodsQuantity);
 	Random rand = new Random();
 	
 	for (int i=0; i < numberOfTestCases ;i++){

@@ -2,6 +2,7 @@ package com.srlab.methodretriever.technique.hill.evaluation;
 
 import com.srlab.methodretriever.technique.hill.HillMetricCalculator;
 
+//This object is mainly to order the list after generating the euclidean distance for every method
 public class HillMetricMethod implements Comparable<HillMetricMethod> {
 		public HillMetricCalculator mc;
 		public Double euclideanDistance;

@@ -44,7 +44,23 @@ public class HillMetricCalculator {
 	private int cyclometicComplexity;
 	private String methodReturnType;
 	private HashMap<Integer,Integer> hmBasicTokenFrequencyCount;
+	private String cloneClassId;
+	private String cloneId;
 
+	public HillMetricCalculator(String methodBody, double queryMethodLenght, String cloneId, String cloneClassId) {
+		this.methodReturnType = null;
+		this.lines = -1;
+		this.numOfArguments = -1;
+		this.typeHashCode = null;
+		this.cyclometicComplexity = 1;
+		this.hmBasicTokenFrequencyCount = new HashMap();
+		this.cloneClassId = cloneClassId;
+		this.cloneId = cloneId;
+		
+		this.parse(methodBody);
+		this.processTokens(methodBody, queryMethodLenght);
+	}
+	
 	public HillMetricCalculator(String methodBody, double queryMethodLenght) {
 		this.methodReturnType = null;
 		this.lines = -1;
@@ -52,11 +68,19 @@ public class HillMetricCalculator {
 		this.typeHashCode = null;
 		this.cyclometicComplexity = 1;
 		this.hmBasicTokenFrequencyCount = new HashMap();
-
+		
 		this.parse(methodBody);
 		this.processTokens(methodBody, queryMethodLenght);
 	}
 	
+	public String getCloneClassId() {
+		return cloneClassId;
+	}
+
+	public String getCloneId() {
+		return cloneId;
+	}
+
 	public double getEuclideanDistance(HillMetricCalculator metricCalculator){
 		double result=0;
 		result = result + (this.getLines()-metricCalculator.getLines())*(this.getLines()-metricCalculator.getLines());

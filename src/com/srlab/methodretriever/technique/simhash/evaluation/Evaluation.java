@@ -33,7 +33,7 @@ public class Evaluation {
 	public static double queryMethodLenght = 0.5;
 				
 	//The percentage of methods that will be used as queryMethods. This number should be less or equal to 1 (100%)
-	public static double queryMethodsQuantity = 0.4;
+	public static double queryMethodsQuantity = 0.1;
 		
 	//The location of the source code from which the methods will be extracted
 	//String sourceCodePath = "/junit4-master/src";
@@ -150,7 +150,7 @@ public class Evaluation {
 	}
 
 
-	private static List<CloneMethod> getTestMethods(double queryMethodsQuantity) {
+private static List<CloneMethod> getTestMethods(double queryMethodsQuantity) {
 		
 		List<CloneMethod> cloneMethods = new ArrayList<CloneMethod>();
 		FileInputStream fisTargetFile;
@@ -167,41 +167,43 @@ public class Evaluation {
 		
 		
 		int numberOfLines = StringUtils.countMatches(content, "\n");
-		int numberOfTestCases = (int) Math.round(numberOfLines * queryMethodsQuantity);
+		int numberOfMethods = StringUtils.countMatches(content, ",");
+		
+		int numberOfTestCases = (int) Math.round(numberOfMethods * queryMethodsQuantity);
 		Random rand = new Random();
 		
 		for (int i=0; i < numberOfTestCases ;i++){
-			try {
-				 int randomLineToRead = rand.nextInt(numberOfLines);
-				 
-				 CSVReader reader = new CSVReader(new FileReader(cloneClassInfoPath));
-			     String [] nextLine;
-			     
-			     int currentLine = 0;
-			     while ((nextLine = reader.readNext()) != null) {
-			    	 currentLine++;
-			    	 if (currentLine==randomLineToRead){
-			    		 if(nextLine.length==2){ //The line only contains one clone, so that's added to the list
-			    			 String cloneClassId = nextLine[0];
-			    			 String cloneId = nextLine[1];
-			    			 cloneMethods.add(new CloneMethod(cloneId,cloneClassId, true));
-			    		 }else{ //The line contains more than one clone, add a random one from them
-			    			 Random rnd = new Random();
-			    			 String cloneClassId = nextLine[0];
-			    			 int random = rnd.nextInt(nextLine.length-1);
-			    			 if (random==0) random++;
-			    			 String cloneId = nextLine[random];
-			    			 cloneMethods.add(new CloneMethod(cloneId,cloneClassId, true));
-			    		 }
-			    	 }  
-			     }
+    		try {
+    			 int randomLineToRead = rand.nextInt(numberOfLines);
+    			 
+    			 CSVReader reader = new CSVReader(new FileReader(cloneClassInfoPath));
+    		     String [] nextLine;
+    		     
+    		     int currentLine = 0;
+    		     while ((nextLine = reader.readNext()) != null) {
+    		    	 currentLine++;
+    		    	 if (currentLine==randomLineToRead){
+    		    		 if(nextLine.length==2){ //The line only contains one clone, so that's added to the list
+    		    			 String cloneClassId = nextLine[0];
+    		    			 String cloneId = nextLine[1];
+    		    			 cloneMethods.add(new CloneMethod(cloneId,cloneClassId, true));
+    		    		 }else{ //The line contains more than one clone, add a random one from them
+    		    			 Random rnd = new Random();
+    		    			 String cloneClassId = nextLine[0];
+    		    			 int random = rnd.nextInt(nextLine.length-1);
+    		    			 if (random==0) random++;
+    		    			 String cloneId = nextLine[random];
+    		    			 cloneMethods.add(new CloneMethod(cloneId,cloneClassId, true));
+    		    		 }
+    		    	 }  
+    		     }
 				
 			} catch (FileNotFoundException e) {
 				e.printStackTrace();
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-		}
+    	}
 		
 		return cloneMethods;
 	}
