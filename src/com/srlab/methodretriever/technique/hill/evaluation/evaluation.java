@@ -30,7 +30,7 @@ public class evaluation {
 	
 	
 	//The percentage of lines that will be used as queryMethods. This number should be less or equal to 1 (100%)
-	public static double queryMethodLenght = 0.75;
+	public static double queryMethodLenght = 0.5;
 			
 	//The percentage of methods that will be used as queryMethods. This number should be less or equal to 1 (100%)
 	public static double queryMethodsQuantity = 0.0139;
@@ -90,7 +90,7 @@ public static void main(String[] args) {
 			List<HillMetricMethod> hillMetricList = getRankedCorpus(cloneTestMethod, cloneMethods, hillMetricCalculatorList);
 			if(hillMetricList.size()==0) continue;
 			
-			//For each testMethod, go through the top-k recomendations and validate if they're clones or not
+			//For each testMethod, go through the top-k recommendations and validate if they're clones or not
 			boolean methodFoundFlag = false;
 			for (int j=0; j<kMethods;j++){
 				System.out.println("TOP "+j+" : "+hillMetricList.get(j).getCloneId()+"_"+hillMetricList.get(j).getCloneClassId());
