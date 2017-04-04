@@ -30,7 +30,7 @@ public class evaluation {
 	
 	
 	//The percentage of lines that will be used as queryMethods. This number should be less or equal to 1 (100%)
-	public static double queryMethodLenght = 0.75;
+	public static double queryMethodLenght = 0.5;
 			
 	//The percentage of methods that will be used as queryMethods. This number should be less or equal to 1 (100%)
 	public static double queryMethodsQuantity = 0.1;
@@ -63,6 +63,7 @@ public static void main(String[] args) {
 		
 		for (CloneMethod cloneTestMethod : cloneTestMethods){
 			
+			System.out.println("Testing Method #"+ cloneTestMethods.indexOf(cloneTestMethod)+ " Of "+cloneTestMethods.size());
 			List<HillMetricMethod> hillMetricList = getRankedCorpus(cloneTestMethod, cloneMethods);
 			
 			boolean methodFoundFlag = false;
@@ -107,7 +108,7 @@ private static List<HillMetricMethod> getRankedCorpus(CloneMethod cloneTestMetho
 			FileInputStream fisTargetFile;
 			fisTargetFile = new FileInputStream(new File(methodsPath+cloneMethods.get(i).getCloneId()+"_"+cloneMethods.get(i).getCloneClassId()+".txt"));
 			String methodBody = IOUtils.toString(fisTargetFile, "UTF-8");
-			System.out.println(cloneMethods.get(i).getCloneId()+"_"+cloneMethods.get(i).getCloneClassId());
+			//System.out.println(cloneMethods.get(i).getCloneId()+"_"+cloneMethods.get(i).getCloneClassId());
 			fisTargetFile.close();
 			
 			HillMetricCalculator mc = new HillMetricCalculator(methodBody, 1.0);

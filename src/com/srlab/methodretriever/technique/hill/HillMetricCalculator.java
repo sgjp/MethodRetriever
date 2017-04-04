@@ -147,7 +147,7 @@ public class HillMetricCalculator {
 					}
 					//System.out.println(token + " : " + new String(scanner.getCurrentTokenSource()));
 				}catch (InvalidInputException e){
-					if(!e.getMessage().equals("Invalid_Float_Literal") && !e.getMessage().equals("Invalid_Hexa_Literal")){
+					if(!e.getMessage().equals("Invalid_Float_Literal") && !e.getMessage().equals("Invalid_Hexa_Literal") && !e.getMessage().equals("Unterminated_Comment")){
 						throw new InvalidInputException(e.getMessage());
 					}
 				}
